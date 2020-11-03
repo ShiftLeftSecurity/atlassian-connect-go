@@ -14,10 +14,14 @@ Most of the tooling live here, by properly instantiating and configuring a `hand
 full jira cloud plug-in working in no time.
 
 ```go
-p = handling.NewPlugin("my jira plugin", "A nice jira plug in, that plugs the ins of jira cloud",
-"com.yourcompany.something.jira.plugin", "https://wherever.you.serve.this", 
-"/relative/path/to/your/endpoints/if/any",
-[]string{"READ", "WRITE"}) // as defined in https://developer.atlassian.com/cloud/jira/platform/scopes/
+p = handling.NewPlugin(
+    "my jira plugin",  // human readable
+    "A nice jira plug in, that plugs the ins of jira cloud", // long description
+    "com.yourcompany.something.jira.plugin",  // unique internal key
+    "https://wherever.you.serve.this",  // this plugin's URL
+    "/relative/path/to/your/endpoints/if/any", // a relative path if this is not served at the base
+                                            // bear in mind it will be automatically added to your paths in the following steps 
+    []string{"READ", "WRITE"}) // as defined in https://developer.atlassian.com/cloud/jira/platform/scopes/
 
 err := p.AddLifeCycleEvent(handling.LCEInstall, "/install", handleInstallFunc)
 if err != nil {
