@@ -20,13 +20,13 @@ We also provide `Plugin.VerifiedHandleFunc` and `Plugin.UnverifiedHandleFunc` to
 
 ```go
 p = handling.NewPlugin(
-    "my jira plugin",  // human readable
-    "A nice jira plug in, that plugs the ins of jira cloud", // long description
-    "com.yourcompany.something.jira.plugin",  // unique internal key
-    "https://wherever.you.serve.this",  // this plugin's URL
-    "/relative/path/to/your/endpoints/if/any", // a relative path if this is not served at the base
-                                            // bear in mind it will be automatically added to your paths in the following steps 
-    []string{"READ", "WRITE"}) // as defined in https://developer.atlassian.com/cloud/jira/platform/scopes/
+		"my jira plugin", // human readable
+		"A nice jira plug in, that plugs the ins of jira cloud", // long description
+		"com.yourcompany.something.jira.plugin",                 // unique internal key
+		"https://wherever.you.serve.this",                       // this plugin's URL
+		"/relative/path/to/your/endpoints/if/any",               // a relative path if this is not served at the base
+		// bear in mind it will be automatically added to your paths in the following steps
+		[]string{"READ", "WRITE"}) // as defined in https://developer.atlassian.com/cloud/jira/platform/scopes/
 
 err := p.AddLifecycleEvent(handling.LCInstalled, "/install", handleInstallFunc)
 if err != nil {
@@ -39,10 +39,10 @@ if err != nil {
 }
 
 err = p.AddJiraIssueField(handling.JiraIssueFields{
-        Description: handling.Description{Value:"A more detailed description"},
-	    Key          : "A_Field",
-	    Name         :handling.Name{Value:"A Fancy Field"},
-	    Type         :"text"}) // https://developer.atlassian.com/cloud/jira/platform/modules/issue-field/
+    Description: handling.Description{Value: "A more detailed description"},
+    Key:         "A_Field",
+    Name:        handling.Name{Value: "A Fancy Field"},
+    Type:        "text"}) // https://developer.atlassian.com/cloud/jira/platform/modules/issue-field/
 if err != nil {
     //...
 }
@@ -50,25 +50,25 @@ if err != nil {
 // https://developer.atlassian.com/cloud/jira/platform/modules/web-panel/
 err = p.AddWebPanel("",
     handling.WebPanel{
-		Conditions: []handling.Conditions{
+        Conditions: []handling.Conditions{
             {
                 Condition: "user_is_logged_in", // https://developer.atlassian.com/cloud/jira/platform/modules/single-condition/
                 Or: []handlingConditions{ // https://developer.atlassian.com/cloud/jira/platform/modules/composite-condition/
-                 handling.Conditions{
-                    Condition:"jira_expression",
-                    Params: handling.ConditionParams{
-                        Expression:"project.style == 'classic'",
-                    },
-                }},
+                    handling.Conditions{
+                        Condition: "jira_expression",
+                        Params: handling.ConditionParams{
+                            Expression: "project.style == 'classic'",
+                        },
+                    }},
             },
         },
-		Context:    "addon",
-		Key:        "some-key",
-		Location:   "atl.jira.view.issue.right.context",
-		Name: Name{
-			Value: "Some Relevant Data",
-		},
-        URL:    "yourpanel/path?issueId={issue.id}", // see https://developer.atlassian.com/cloud/jira/platform/context-parameters/
+        Context:  "addon",
+        Key:      "some-key",
+        Location: "atl.jira.view.issue.right.context",
+        Name: Name{
+            Value: "Some Relevant Data",
+        },
+        URL: "yourpanel/path?issueId={issue.id}", // see https://developer.atlassian.com/cloud/jira/platform/context-parameters/
         /*
             // the following are available
             option.id, option.key, option.properties
@@ -76,8 +76,8 @@ err = p.AddWebPanel("",
             project.id, project.key
             user.id (deprecated), user.name (deprecated), user.accountId
         */
-		Weight: 10,
-	})
+        Weight: 10,
+    })
 if err != nil {
     //...
 }
