@@ -33,6 +33,6 @@ type JiraInstallInformation struct {
 // Store should be implemented to allow storage of the necessary jira information.
 // all methods should be idempotent.
 type Store interface {
-	SaveJiraIntallInformation(*JiraInstallInformation) error
-	JiraIntallInformation(clientKey string) (*JiraInstallInformation, error)
+	SaveJiraInstallInformation(*JiraInstallInformation) error
+	JiraInstallInformation(clientKey string) (*JiraInstallInformation, error)
 }
