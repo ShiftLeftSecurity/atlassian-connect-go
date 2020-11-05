@@ -1,0 +1,80 @@
+/* snapshot: Test atlassian connect rendering */
+{
+    "authentication": {
+        "type": "jwt"
+    },
+    "baseUrl": "https://invalidurl.shiftleft.io",
+    "description": "a test of generating atlassian connect",
+    "key": "io.something.very.uniqye",
+    "lifecycle": {
+        "installed": "/install"
+    },
+    "modules": {
+        "jiraIssueFields": [
+            {
+                "description": {
+                    "value": "A more detailed description"
+                },
+                "key": "A_Field",
+                "name": {
+                    "value": "AFancyFunc"
+                },
+                "type": "text"
+            }
+        ],
+        "jiraProjectAdminTabPanels": [
+            {
+                "context": "addon",
+                "key": "some-key",
+                "location": "atl.jira.view.issue.right.context",
+                "name": {
+                    "value": "Some Relevant Data"
+                },
+                "url": "yourpanel/path?issueId={issue.id}",
+                "weight": 10
+            }
+        ],
+        "webPanels": [
+            {
+                "conditions": [
+                    {
+                        "condition": "user_is_logged_in",
+                        "params": {},
+                        "or": [
+                            {
+                                "condition": "jira_expression",
+                                "params": {
+                                    "expression": "project.style == 'classic'"
+                                }
+                            }
+                        ]
+                    }
+                ],
+                "context": "addon",
+                "key": "some-key",
+                "location": "atl.jira.view.issue.right.context",
+                "name": {
+                    "value": "Some Relevant Data"
+                },
+                "url": "yourpanel/path?issueId={issue.id}",
+                "weight": 10
+            }
+        ],
+        "webhooks": [
+            {
+                "event": "jira:issue_updated",
+                "url": "/issue_updated"
+            }
+        ]
+    },
+    "name": "test_atlassian_connect_01",
+    "scopes": [
+        "READ",
+        "WRITE",
+        "ACT_AS_USER"
+    ],
+    "vendor": {
+        "name": "ShiftLeft",
+        "url": "https://www.shiftleft.io"
+    }
+}

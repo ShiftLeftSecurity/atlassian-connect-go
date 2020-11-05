@@ -13,6 +13,11 @@ It also provides `storage.JiraInstallInformation` which holds all the informatio
 Most of the tooling live here, by properly instantiating and configuring a `handling.Plugin` you can have your
 full jira cloud plug-in working in no time.
 
+Bear in mind that handler functions here are `handling.JiraHandleFunc` which will then be wrapped in a validation
+`http.HandlerFunc` if possible.
+
+We also provide `Plugin.VerifiedHandleFunc` and `Plugin.UnverifiedHandleFunc` to produce your own `http.HandlerFunc` with jwt validation.
+
 ```go
 p = handling.NewPlugin(
     "my jira plugin",  // human readable
@@ -23,20 +28,20 @@ p = handling.NewPlugin(
                                             // bear in mind it will be automatically added to your paths in the following steps 
     []string{"READ", "WRITE"}) // as defined in https://developer.atlassian.com/cloud/jira/platform/scopes/
 
-err := p.AddLifeCycleEvent(handling.LCEInstall, "/install", handleInstallFunc)
+err := p.AddLifecycleEvent(handling.LCInstalled, "/install", handleInstallFunc)
 if err != nil {
     //...
 }
 
-err = p.AddWebHook("jira:issue_updated", "/issue_updated", handleIssueUpdated)
+err = p.AddWebhook("jira:issue_updated", "/issue_updated", handleIssueUpdated)
 if err != nil {
     //...
 }
 
-err = p.AddJiraIssueField(handling.JiraIssueField{
+err = p.AddJiraIssueField(handling.JiraIssueFields{
         Description: handling.Description{Value:"A more detailed description"},
 	    Key          : "A_Field",
-	    Name         :"A Fancy Field",
+	    Name         :handling.Name{Value:"A Fancy Field"},
 	    Type         :"text"}) // https://developer.atlassian.com/cloud/jira/platform/modules/issue-field/
 if err != nil {
     //...
@@ -48,13 +53,13 @@ err = p.AddWebPanel("",
 		Conditions: []handling.Conditions{
             {
                 Condition: "user_is_logged_in", // https://developer.atlassian.com/cloud/jira/platform/modules/single-condition/
-                Or: [ // https://developer.atlassian.com/cloud/jira/platform/modules/composite-condition/
+                Or: []handlingConditions{ // https://developer.atlassian.com/cloud/jira/platform/modules/composite-condition/
                  handling.Conditions{
                     Condition:"jira_expression",
                     Params: handling.ConditionParams{
                         Expression:"project.style == 'classic'",
                     },
-                }],
+                }},
             },
         },
 		Context:    "addon",
