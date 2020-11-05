@@ -363,7 +363,7 @@ func ValidateRequest(r *http.Request, st storage.Store) (*storage.JiraInstallInf
 	if err != nil {
 		return nil, fmt.Errorf("malformed token: %w", err)
 	}
-	jii, err := st.JiraIntallInformation(jcs.Issuer)
+	jii, err := st.JiraInstallInformation(jcs.Issuer)
 	if err != nil {
 		return nil, fmt.Errorf("reading jira install information from storage: %w", err)
 	}

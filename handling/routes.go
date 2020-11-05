@@ -134,14 +134,14 @@ func (p *Plugin) renderAtlassianConnectJSON(w io.Writer) error {
 func (p *Plugin) Router(r *mux.Router) *mux.Router {
 	var newRouter *mux.Router
 	if r == nil {
-		newRouter = mux.NewRouter()
+		r = mux.NewRouter()
 	}
 	if p.baseRoute != "" {
 		newRouter = r.PathPrefix(p.baseRoute).Subrouter()
 	} else {
 		newRouter = r
 	}
-	newRouter.Methods(http.MethodGet).Path("atlassian-connect.json").
+	newRouter.Methods(http.MethodGet).Path("/atlassian-connect.json").
 		HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("content-type", "application/json")
 			if err := p.renderAtlassianConnectJSON(w); err != nil {
@@ -151,6 +151,7 @@ func (p *Plugin) Router(r *mux.Router) *mux.Router {
 				}
 			}
 		})
+
 	for event, handler := range p.lifecycle {
 		var verifiedHandler http.HandlerFunc
 		if event != LCInstalled {
@@ -163,8 +164,15 @@ func (p *Plugin) Router(r *mux.Router) *mux.Router {
 	for hook, handler := range p.webhooks {
 		newRouter.Methods(http.MethodGet, http.MethodPost).Path(p.webhookRoutes[hook].path).HandlerFunc(p.VerifiedHandleFunc(handler))
 	}
+	r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		pathTmpl, _ := route.GetPathTemplate()
+		methods, _ := route.GetMethods()
 
-	return newRouter
+		p.logger.Printf("INFO: Loaded Routes: %s %s", methods, pathTmpl)
+
+		return nil
+	})
+	return r
 }
 
 var defaultPluginAuthentication = Authentication{
@@ -335,7 +343,7 @@ func NewPlugin(name, description, key, baseURL, baseRoute string,
 
 	return &Plugin{
 		ac:                 ac,
-		baseRoute:          "",
+		baseRoute:          baseRoute,
 		store:              store,
 		logger:             logger,
 		jiraIssueFields:    map[string]JiraIssueFields{},
