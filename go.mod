@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/andygrunwald/go-jira v1.14.0
 	github.com/beme/abide v0.0.0-20190723115211-635a09831760
-	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/mux v1.8.0
