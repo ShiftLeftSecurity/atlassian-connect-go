@@ -111,6 +111,20 @@ func (p *Plugin) VerifiedHandleFunc(handler JiraHandleFunc) http.HandlerFunc {
 	}
 }
 
+// InstallHandleFunc returns the passed JiraHandleFunc wrapped into a layer of middleware
+// that tries to parse the installation token, take this with several grains of salt.
+func (p *Plugin) InstallHandleFunc(handler JiraHandleFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		if err := apicommunication.ValidateInstallRequest(r, p.store); err != nil {
+			p.logger.Printf("ERROR: Validating jira install JWT: %v", err)
+			p.HandleErrorCode(http.StatusInternalServerError, w, r)
+			return
+		}
+		handler(nil, p.store, w, r)
+	}
+}
+
 // UnverifiedHandleFunc returns the passed JiraHandleFunc wrapped into a layer of middleware
 // that only adds store.
 func (p *Plugin) UnverifiedHandleFunc(handler JiraHandleFunc) http.HandlerFunc {
@@ -123,7 +137,7 @@ func (p *Plugin) renderAtlassianConnectJSON(w io.Writer) error {
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "    ")
 	if err := enc.Encode(p.ac); err != nil {
-		return fmt.Errorf("Marshaling atlassian-connect.json")
+		return fmt.Errorf("marshaling atlassian-connect.json")
 	}
 	return nil
 }
@@ -156,6 +170,8 @@ func (p *Plugin) Router(r *mux.Router) *mux.Router {
 		var verifiedHandler http.HandlerFunc
 		if event != LCInstalled {
 			verifiedHandler = p.VerifiedHandleFunc(handler)
+		} else if p.ac.APIMigrations.SignedInstall { // use kid, experimental
+			verifiedHandler = p.InstallHandleFunc(handler)
 		} else {
 			verifiedHandler = p.UnverifiedHandleFunc(handler)
 		}
@@ -278,7 +294,7 @@ const webhooksKey = "webhooks"
 func (p *Plugin) UpdateWebhook(event string, route RoutePath, f JiraHandleFunc) error {
 	p.webhooks[event] = f
 	p.webhookRoutes[event] = route
-	webhooks := []Webhooks{}
+	var webhooks []Webhooks
 	for k, v := range p.webhookRoutes {
 		webhooks = append(webhooks, Webhooks{
 			Event: k,
@@ -329,7 +345,7 @@ func (p *Plugin) UpdateLifecycleEvent(lce LifeCycleEvents, route string, f JiraH
 // all the events by invoking Router().
 func NewPlugin(name, description, key, baseURL, baseRoute string,
 	store storage.Store, logger *log.Logger,
-	scopes []string, vendor Vendor) *Plugin {
+	scopes []string, vendor Vendor, signedInstall bool) *Plugin {
 	ac := &AtlassianConnect{
 		Authentication: defaultPluginAuthentication,
 		BaseURL:        baseURL,
@@ -339,6 +355,9 @@ func NewPlugin(name, description, key, baseURL, baseRoute string,
 		Scopes:         scopes,
 		Vendor:         vendor,
 		Modules:        map[string]interface{}{},
+		APIMigrations: APIMigration{
+			SignedInstall: signedInstall,
+		},
 	}
 
 	return &Plugin{

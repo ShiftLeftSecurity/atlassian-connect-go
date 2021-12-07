@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -42,7 +43,7 @@ func ScopesFromStrings(scopes []string) string {
 	return strings.Join(scopes, scopeSeparator)
 }
 
-// HostClient takes it's name from the atlassian connect express code base
+// HostClient takes its name from the atlassian connect express code base
 // where it was stolen because naming things is hard
 type HostClient struct {
 	ctx           context.Context
@@ -54,7 +55,7 @@ type HostClient struct {
 	localCache    map[string]*HostClient // more than enough for 60 sec tokens
 }
 
-// teoretically this combines DialContext and TLSHandshakeTimeout for TLS conns, we can look
+// theoretically this combines DialContext and TLSHandshakeTimeout for TLS conns, we can look
 // a bit more into it and define a DialTLS if necessary.
 var defaultJiraTransport http.RoundTripper = &http.Transport{
 	Proxy: http.ProxyFromEnvironment,
@@ -140,7 +141,7 @@ func (h *HostClient) Do(method, path string, queryArgs map[string]string, body i
 }
 
 // TypeFromResponse deserializes an http.Response body into an arbitrary type
-// betware, this will accept anything but fail if it's not a pointer to.
+// beware, this will accept anything but fail if it's not a pointer to.
 func TypeFromResponse(r *http.Response, target interface{}) error {
 	err := json.NewDecoder(r.Body).Decode(target)
 	if err != nil {
@@ -342,7 +343,7 @@ func toClaims(jcs *jira.ClaimSet) jwt.Claims {
 }
 
 // ValidateRequest returns jira install information for the request author if valid or error if not.
-// This validation willnot work in lifecycle installed event
+// This validation will not work in lifecycle installed event
 func ValidateRequest(r *http.Request, st storage.Store) (*storage.JiraInstallInformation, error) {
 	q := r.URL.Query()
 	queryJWT := q.Get("jwt")
@@ -381,4 +382,58 @@ func ValidateRequest(r *http.Request, st storage.Store) (*storage.JiraInstallInf
 		return nil, fmt.Errorf("parsing token: %w", err)
 	}
 	return jii, nil
+}
+
+const kidValidationURL = "https://connect-install-keys.atlassian.com/"
+
+// ValidateInstallRequest attempts to validate new install method for jira
+func ValidateInstallRequest(r *http.Request, st storage.Store) error {
+	q := r.URL.Query()
+	queryJWT := q.Get("jwt")
+	if queryJWT == "" {
+		authHeader := r.Header.Get("Authorization")
+		queryJWT = strings.TrimPrefix(authHeader, "JWT ")
+		if queryJWT == "" {
+			return fmt.Errorf("jwt was expected in the query string or header")
+		}
+	}
+
+	p := &jwt.Parser{}
+	// massage a bit oauth2 claimset to be jwt.Claims friendly
+	jcs := &jira.ClaimSet{}
+	claims := toClaims(jcs)
+	// Decode jwt to obtain info from claims
+	t, _, err := p.ParseUnverified(queryJWT, claims)
+	if err != nil {
+		return fmt.Errorf("malformed token: %w", err)
+	}
+
+	// now validate the thing
+	_, err = p.ParseWithClaims(queryJWT, claims, func(token *jwt.Token) (interface{}, error) {
+		kidRaw := t.Header["kid"]
+		kid, ok := kidRaw.(string)
+		if !ok {
+			return nil, fmt.Errorf("kid is not a string but %T", kidRaw)
+		}
+		if kid != "" {
+			kidURL := kidValidationURL + kid
+			kidResp, err := http.Get(kidURL)
+			if err != nil {
+				return nil, fmt.Errorf("obtaining public key from atlassian: %w", err)
+			}
+			kidPKey, err := ioutil.ReadAll(kidResp.Body)
+			if err != nil {
+				return nil, fmt.Errorf("reading public key from atlassian: %w", err)
+			}
+			return kidPKey, nil
+		}
+		return []byte{}, nil
+	})
+	if err != nil {
+		if _, ok := err.(*jwt.ValidationError); ok {
+			return fmt.Errorf("malformed token: %w", err)
+		}
+		return fmt.Errorf("parsing token: %w", err)
+	}
+	return nil
 }

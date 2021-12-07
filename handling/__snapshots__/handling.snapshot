@@ -76,6 +76,9 @@
     "vendor": {
         "name": "ShiftLeft",
         "url": "https://www.shiftleft.io"
+    },
+    "apiMigrations": {
+        "signed-install": false
     }
 }
 
@@ -158,5 +161,8 @@
     "vendor": {
         "name": "ShiftLeft",
         "url": "https://www.shiftleft.io"
+    },
+    "apiMigrations": {
+        "signed-install": false
     }
 }
