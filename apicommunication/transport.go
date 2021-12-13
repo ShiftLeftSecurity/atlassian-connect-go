@@ -101,7 +101,14 @@ func NewHostClientWithRoundtripper(ctx context.Context, config *storage.JiraInst
 		Issuer:    config.Key,
 		Transport: roundtripper,
 	}
-	hostClient.client = transport.Client()
+	client := transport.Client()
+	// We instruct the http client to _not_ follow redirect: some API endpoints
+	// return a 3xx code indicating an asynchronous task and we need to surface
+	// this information to the caller.
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+	hostClient.client = client
 
 	if config.BaseURL == "" {
 		return nil, fmt.Errorf("jira install information is incomplete, base URL is empty")
