@@ -432,9 +432,11 @@ func ValidateInstallRequest(r *http.Request, st storage.Store) error {
 			if err != nil {
 				return nil, fmt.Errorf("reading public key from atlassian: %w", err)
 			}
-			return kidPKey, nil
+			// The JWT is signed with a private key using the RS256 algorithm.
+			// Reference: https://developer.atlassian.com/cloud/jira/platform/security-for-connect-apps/#signed-installation-callback-requests
+			return jwt.ParseRSAPublicKeyFromPEM(kidPKey)
 		}
-		return []byte{}, nil
+		return nil, nil
 	})
 	if err != nil {
 		if _, ok := err.(*jwt.ValidationError); ok {
