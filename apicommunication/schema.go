@@ -1544,7 +1544,7 @@ type HistoryMetadata struct {
 	EmailDescription string `json:"emailDescription"`
 	// EmailDescriptionKey is the The description key of the email address associated the history record.
 	EmailDescriptionKey string `json:"emailDescriptionKey"`
-	ExtraData           string `json:"extraData"`
+	// LDC: commenting-out as it fails on json-objects and we do not use it. ExtraData           string `json:"extraData"`
 	// Generator is the Details of the system that generated the history record.
 	Generator struct {
 		*HistoryMetadataParticipant `json:",inline"`
