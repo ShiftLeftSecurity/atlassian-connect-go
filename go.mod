@@ -13,15 +13,11 @@ require (
 
 require (
 	github.com/fatih/structs v1.1.0 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hexops/gotextdiff v1.0.3 // indirect
 	github.com/nsf/jsondiff v0.0.0-20210926074059-1e845ec5d249 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/trivago/tgo v1.0.7 // indirect
-	golang.org/x/net v0.40.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.36.6 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
