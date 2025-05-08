@@ -41,7 +41,7 @@ type tlog struct {
 }
 
 func (t *tlog) Write(p []byte) (int, error) {
-	t.t.Logf(string(p))
+	t.t.Log(string(p))
 	return len(p), nil
 }
 
@@ -59,7 +59,7 @@ func newPlugin(t *testing.T, handleFunc JiraHandleFunc) *Plugin {
 			Name: "ShiftLeft",
 			URL:  "https://www.shiftleft.io",
 		},
-		false)// can't test this in true without significant changes
+		false) // can't test this in true without significant changes
 	err := p.AddLifecycleEvent(LCInstalled, "/installed", handleFunc)
 	if err != nil {
 		t.Error(err)

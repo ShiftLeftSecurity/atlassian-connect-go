@@ -30,7 +30,7 @@ import (
 	"time"
 
 	gojira "github.com/andygrunwald/go-jira"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/jira"
 
